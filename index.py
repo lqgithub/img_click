@@ -29,7 +29,30 @@ class MainWindow:
         self.running = False  # 循环控制器
         self.lock = threading.Lock()
         self.escape_thread = None # 存储ESC键监听线程
-    
+        self.scaling_ratio_x = 1
+        self.scaling_ratio_y = 1
+        self.scale(root)  # 获取屏幕缩放比
+
+    def scale(self,root):
+         # 获取屏幕的逻辑宽度和高度（以像素为单位）
+        logical_width = root.winfo_screenwidth()
+        logical_height = root.winfo_screenheight()
+
+        # 获取屏幕的物理宽度和高度（以毫米为单位）
+        physical_width = root.winfo_screenmmwidth()
+        physical_height = root.winfo_screenmmheight()
+
+        # 将物理尺寸从毫米转换为英寸，1英寸=25.4毫米
+        physical_width_inches = physical_width / 25.4
+        physical_height_inches = physical_height / 25.4
+
+        # 计算每英寸点数（DPI）
+        dpi_x = logical_width / physical_width_inches
+        dpi_y = logical_height / physical_height_inches
+
+        # 假设标准DPI为96，计算缩放比
+        self.scaling_ratio_x = dpi_x / 96
+        self.scaling_ratio_y = dpi_y / 96
 
     # 监听ESC键的线程函数
     def listen_for_escape(self):
@@ -66,8 +89,8 @@ class MainWindow:
             # 获取匹配区域的中心点坐标（注意：如果有多个匹配区域，这里只取第一个）
             if loc[0].size > 0:
                 for pt in zip(*loc[::-1]):
-                    center_x = pt[0] + w // 2
-                    center_y = pt[1] + h // 2
+                    center_x = pt[0] + w // ( 2 * self.scaling_ratio_x )
+                    center_y = pt[1] + h // ( 2 * self.scaling_ratio_y )
                     # 打印中心点坐标（用于调试）
                     print(f'Matched center: ({center_x}, {center_y})')
                     
