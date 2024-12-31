@@ -38,3 +38,9 @@ python opencv联动pyautogui
 1. 按钮终止
 2. 按ESC键终止
     添加esc监听，esc可以退出
+
+## 依赖安装
+
+```bash
+pip install -r requirements.txt
+```
