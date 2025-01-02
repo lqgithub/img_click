@@ -34,6 +34,15 @@ class MainWindow:
         self.scaling_ratio_y = 1
         self.scale(root)  # 获取屏幕缩放比
 
+    def on_key_press(self, event):
+        if event.name == 'esc' or event.name == 'backspace' or event.name == 'delete':
+            with self.lock:
+                self.running = False  # 设置标志变量为False，以中断主循环
+                # 显示消息框
+                messagebox.showinfo("提示", "已关闭进程")
+                print(f"{event.name} 键被按下，已关闭进程")
+            # 停止监听（可选，如果只需要一次响应）
+            keyboard.unhook_all()
     def on_closing(self):
         # if self.escape_thread:
         #     self.escape_thread.join() # 不能处理，会死循环 是等待当前进程完成才能执行后续代码
@@ -64,13 +73,6 @@ class MainWindow:
         self.scaling_ratio_x = dpi_x / 96
         self.scaling_ratio_y = dpi_y / 96
 
-    # 监听ESC键的线程函数
-    def listen_for_escape(self):
-        keyboard.wait('esc')  # 等待ESC键被按下
-        with self.lock:  # 使用锁来确保修改running变量的线程安全
-            self.running = False  # 设置标志变量为False，以中断主循环
-            messagebox.showinfo("提示", "已关闭进程")
-            print("ESC键被按下，已关闭进程")
     def select_image(self):
         if self.image_path:
             self.running = False
@@ -125,8 +127,7 @@ class MainWindow:
         self.runnum = 0
         if not self.image_path:
             return messagebox.showinfo("提示", "未选择图片无法开始")
-        self.escape_thread = threading.Thread(target=self.listen_for_escape)
-        self.escape_thread.start()
+        keyboard.hook(self.on_key_press)
         if not self.running:
             self.running = True
             loop_thread = threading.Thread(target=self.loop_default)
