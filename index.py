@@ -1,14 +1,12 @@
-import os
 import time
 import cv2
 import numpy as np
 import pyautogui
 import threading
 import keyboard
-import sys
 import tkinter as tk
 from tkinter import filedialog,messagebox
-from PIL import Image,ImageTk,ImageGrab
+from PIL import ImageGrab
 class MainWindow:
     def __init__(self,root):
         self.root = root
@@ -20,19 +18,31 @@ class MainWindow:
         self.button1 = tk.Button(root, text="选择图片", command=self.select_image)
         self.button1.pack(pady=10)  # 设置水平和垂直间距
         self.button2 = tk.Button(root, text="开始 or 重启", command=self.start)
-        self.button2.pack(side=tk.LEFT,padx=40) 
-        self.button3 = tk.Button(root, text="终止进程", command=self.quit)
-        self.button3.pack(side=tk.RIGHT,padx=(0,40)) 
+        # self.button2.pack(side=tk.LEFT,padx=40) 
+        self.button2.pack(pady=10) 
 
-        self.runnum = 0
+        root.protocol("WM_DELETE_WINDOW", self.on_closing) # 绑定窗口关闭事件
+
         self.image_path = None
+
+        self.runnum = 0 # 运行次数
         self.running = False  # 循环控制器
-        self.lock = threading.Lock()
+        self.lock = threading.Lock()  # 创建进程锁
         self.escape_thread = None # 存储ESC键监听线程
+
         self.scaling_ratio_x = 1
         self.scaling_ratio_y = 1
         self.scale(root)  # 获取屏幕缩放比
 
+    def on_closing(self):
+        # if self.escape_thread:
+        #     self.escape_thread.join() # 不能处理，会死循环 是等待当前进程完成才能执行后续代码
+        if self.running:  # 如果程序正在运行，则等待程序结束
+            if messagebox.askokcancel("Quit", "确定关闭程序?"):
+                self.running = False
+                root.destroy()
+        else:  # 如果程序没有正在运行，则直接关闭窗口
+            root.destroy()
     def scale(self,root):
          # 获取屏幕的逻辑宽度和高度（以像素为单位）
         logical_width = root.winfo_screenwidth()
@@ -60,6 +70,7 @@ class MainWindow:
         with self.lock:  # 使用锁来确保修改running变量的线程安全
             self.running = False  # 设置标志变量为False，以中断主循环
             messagebox.showinfo("提示", "已关闭进程")
+            print("ESC键被按下，已关闭进程")
     def select_image(self):
         if self.image_path:
             self.running = False
@@ -85,26 +96,30 @@ class MainWindow:
             res = cv2.matchTemplate(screen_gray, template, cv2.TM_CCOEFF_NORMED)
             threshold = 0.8  # 设置匹配阈值，根据实际情况调整
             loc = np.where(res >= threshold)
-                
+            print(f'Matched locations: {loc}',loc[0])
             # 获取匹配区域的中心点坐标（注意：如果有多个匹配区域，这里只取第一个）
             if loc[0].size > 0:
+                self.runnum = 0  # 重置计数器
                 for pt in zip(*loc[::-1]):
                     center_x = pt[0] + w // ( 2 * self.scaling_ratio_x )
                     center_y = pt[1] + h // ( 2 * self.scaling_ratio_y )
                     # 打印中心点坐标（用于调试）
-                    print(f'Matched center: ({center_x}, {center_y})')
+                    # print(f'Matched center: ({center_x}, {center_y})')
                     
                     # 模拟鼠标点击
                     pyautogui.click(center_x, center_y)
+                    pyautogui.click(center_x, center_y)
                     # 可选：点击后等待一段时间，以便观察效果
-                    break  # 找到第一个匹配后就退出循环
+                    # break  # 找到第一个匹配后就退出循环
+                time.sleep(1) # 休眠0.1秒
             else:
                 print('No match found')
-                self.runnum += 1
-                if self.runnum > 240:
+                self.runnum += 1  # 累加计数器
+                time.sleep(0.2) # 休眠0.2秒
+                if self.runnum > 600:  # 如果运行次数超过600次，则停止循环
                     self.running = False
-                    messagebox.showinfo("提示", "未找到符合图片")
-            time.sleep(0.5) # 休眠0.5秒
+                    messagebox.showinfo("提示", "停止循环")
+                    print("未找到符合图片，已停止循环进程")
 
     def start(self):
         self.runnum = 0
@@ -112,19 +127,11 @@ class MainWindow:
             return messagebox.showinfo("提示", "未选择图片无法开始")
         self.escape_thread = threading.Thread(target=self.listen_for_escape)
         self.escape_thread.start()
-        print('start')
         if not self.running:
             self.running = True
             loop_thread = threading.Thread(target=self.loop_default)
-            loop_thread.start()
+            loop_thread.start()  # 启动关闭程序的线程
             print("循环已启动")
-
-    def quit(self):
-        if self.running:
-            self.running = False
-            messagebox.showinfo("提示", "已关闭进程")
-        else:
-            messagebox.showinfo("提示", "进程未运行")
 
 if __name__ == '__main__':
     root = tk.Tk()

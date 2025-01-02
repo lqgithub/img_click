@@ -1,25 +1,20 @@
 # 模拟鼠标点击
 
 ## 窗口创建
-1. tkinter模块
-    ```
-    self.root = root
-    self.root.title(".0_0.")
-    self.root.geometry("300x200")
-    self.label = tk.Label(root, text="未选择图片")
-    self.label.pack(pady=20)
+**tkinter模块**
 
-    self.button1 = tk.Button(root, text="选择图片", command=self.select_image)
-    self.button1.pack(pady=10)  # 设置水平和垂直间距
-    self.button2 = tk.Button(root, text="开始 or 重启", command=self.start)
-    self.button2.pack(side=tk.LEFT,padx=40) 
-    self.button3 = tk.Button(root, text="终止进程", command=self.quit)
-    self.button3.pack(side=tk.RIGHT,padx=(0,40)) 
-    ```
+```
+import tkinter as tk
+root = tk.Tk()
+```
 
 ## 图片选择
+
 1. 选中图片才可以进行模拟点击
 2. 重新选择 需要重启进程
+3. 选择图片后，点击按钮，进行模拟点击
+4. 进程效果可能会受计算机缩放比影响
+5. 图片大小截图页面原始大小
 
 ## 模拟点击
 python opencv联动pyautogui
@@ -41,6 +36,17 @@ python opencv联动pyautogui
 
 ## 依赖安装
 
+**推荐python 3.10 +**
+
+~~requirements.txt 暂时有问题，自己根据情况安装吧~~
 ```bash
 pip install -r requirements.txt
+```
+
+## 打包
+
+**pyinstaller会根据不同系统打不同的包，当前并未适配window以外的系统**
+
+```bash
+pyinstaller --onefile index.py
 ```
