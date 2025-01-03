@@ -113,7 +113,7 @@ class MainWindow:
                     pyautogui.click(center_x, center_y)
                     # 可选：点击后等待一段时间，以便观察效果
                     # break  # 找到第一个匹配后就退出循环
-                time.sleep(1) # 休眠0.1秒
+                time.sleep(0.1) # 休眠0.1秒
             else:
                 print('No match found')
                 self.runnum += 1  # 累加计数器
