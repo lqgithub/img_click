@@ -56,3 +56,8 @@ pip install -r requirements.txt
 ```bash
 pyinstaller --onefile index.py
 ```
+
+## 异常
+
+1. mac定位有异常，正常/2可以，没有找到具体原因，目前暂未真正解决
+2. 图片查找时匹配度0.85，可能会出现多个同位置的匹配异常，可以尝试调整匹配度，未添加解决
