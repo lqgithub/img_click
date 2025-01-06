@@ -14,14 +14,25 @@ class MainWindow:
         self.root.geometry("400x200")
         self.label = tk.Label(root, text="未选择图片")
         self.label.pack(pady=20)
+        self.image_path = None
+        self.runnum = 0 # 运行次数
+        self.running = False  # 循环控制器
+        self.lock = threading.Lock()  # 创建进程锁
+        self.escape_thread = None # 存储ESC键监听线程
+        # 创建一个DoubleVar变量，并与Scale控件绑定
+        self.scale_var = tk.DoubleVar()
+        self.threshold = 0.9  # 设置匹配阈值，根据实际情况调整
+        # 缩放比
+        self.scaling_ratio_x = 1
+        self.scaling_ratio_y = 1
+        self.scale(root)  # 获取屏幕缩放比
 
         menubar = Menu(root)  # 创建菜单栏
         menubar.add_cascade(label="退出", command=root.quit)  # 创建退出菜单
         menubar.add_cascade(label="帮助", command=self.help_info)  # 创建帮助菜单
         root.config(menu=menubar)  # 配置菜单栏到主窗口
 
-        # 创建一个DoubleVar变量，并与Scale控件绑定
-        self.scale_var = tk.DoubleVar()
+        # 进度条调节延时
         scale = tk.Scale(root, from_=1, to=10, orient=tk.HORIZONTAL, variable=self.scale_var)
         scale.pack()
 
@@ -32,19 +43,9 @@ class MainWindow:
 
         root.protocol("WM_DELETE_WINDOW", self.on_closing) # 绑定窗口关闭事件
 
-        self.image_path = None
-
-        self.runnum = 0 # 运行次数
-        self.running = False  # 循环控制器
-        self.lock = threading.Lock()  # 创建进程锁
-        self.escape_thread = None # 存储ESC键监听线程
-
-        self.scaling_ratio_x = 1
-        self.scaling_ratio_y = 1
-        self.scale(root)  # 获取屏幕缩放比
 
     def help_info(self):
-        messagebox.showinfo("帮助信息", "使用说明：\n1. 选择需要识别的图片\n2. 点击开始按钮，程序会自动识别并点击图片\n3. ESC、Delete、Backspace会终止进程\n4. 点击退出按钮，程序会退出\n5. 点击帮助按钮，会显示帮助信息\n6. 重新选择图片后，进程必须重新开始")
+        messagebox.showinfo("帮助信息", "使用说明：\n1. 选择需要识别的图片\n2. 点击开始按钮，程序会自动识别并点击图片\n3. ESC、Delete、Backspace会终止进程\n4. 点击退出按钮，程序会退出\n5. 调整进度条可以修改进程刷新率\n6. 点击帮助按钮，会显示帮助信息\n7. 重新选择图片后，进程必须重新开始\n8. 显示有问题建议拖拽放大窗口")
         
     def on_key_press(self, event):
         if event.name == 'esc' or event.name == 'backspace' or event.name == 'delete':
@@ -104,8 +105,7 @@ class MainWindow:
             
             # 使用模板匹配算法
             res = cv2.matchTemplate(screen_gray, template, cv2.TM_CCOEFF_NORMED)
-            threshold = 0.9  # 设置匹配阈值，根据实际情况调整
-            loc = np.where(res >= threshold)
+            loc = np.where(res >= self.threshold)
             print(f'Matched locations: {loc}',loc[0],res[res >= 0.8])
             # 获取匹配区域的中心点坐标（注意：如果有多个匹配区域，这里只取第一个）
             if loc[0].size > 0:
