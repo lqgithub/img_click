@@ -5,7 +5,7 @@ import pyautogui
 import threading
 import keyboard
 import tkinter as tk
-from tkinter import filedialog,messagebox
+from tkinter import filedialog,messagebox,Menu
 from PIL import ImageGrab
 class MainWindow:
     def __init__(self,root):
@@ -15,10 +15,18 @@ class MainWindow:
         self.label = tk.Label(root, text="未选择图片")
         self.label.pack(pady=20)
 
+        # 创建菜单栏
+        menubar = Menu(root)
+        # 创建退出菜单
+        menubar.add_cascade(label="退出", command=root.quit)
+        # 创建帮助菜单
+        menubar.add_cascade(label="帮助", command=self.help_info)
+        # 配置菜单栏到主窗口
+        root.config(menu=menubar)
+
         self.button1 = tk.Button(root, text="选择图片", command=self.select_image)
         self.button1.pack(pady=10)  # 设置水平和垂直间距
         self.button2 = tk.Button(root, text="开始 or 重启", command=self.start)
-        # self.button2.pack(side=tk.LEFT,padx=40) 
         self.button2.pack(pady=10) 
 
         root.protocol("WM_DELETE_WINDOW", self.on_closing) # 绑定窗口关闭事件
@@ -34,6 +42,9 @@ class MainWindow:
         self.scaling_ratio_y = 1
         self.scale(root)  # 获取屏幕缩放比
 
+    def help_info(self):
+        messagebox.showinfo("帮助信息", "使用说明：\n1. 选择需要识别的图片\n2. 点击开始按钮，程序会自动识别并点击图片\n3. ESC、Delete、Backspace会终止进程\n4. 点击退出按钮，程序会退出\n5. 点击帮助按钮，会显示帮助信息\n6. 重新选择图片后，进程必须重新开始")
+        
     def on_key_press(self, event):
         if event.name == 'esc' or event.name == 'backspace' or event.name == 'delete':
             with self.lock:
