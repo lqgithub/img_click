@@ -55,6 +55,21 @@ pip install -r requirements.txt
 pyinstaller --onefile index.py
 ```
 
+### icon的生成
+1. 编辑 .spec 文件： 
+```spec
+exe = EXE(
+    # 其他参数...
+    icon='myicon.ico',
+    # 其他参数...
+)
+```
+2. 打包：
+```bash
+pyinstaller --onefile --icon=myicon.ico index.py
+```
+
+
 ## 异常
 
 1. mac定位有异常，正常/2可以，没有找到具体原因，目前暂未真正解决
